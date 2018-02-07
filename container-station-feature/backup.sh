@@ -8,12 +8,14 @@ function stop()
             [Yy]* ) echo "Teminating the process ...";
                     ## SIGINT when backup/restore
                     map=`cat ./mapping`
-                    echo "$map" | while IFS='' read -r line || [[ -n "$line" ]]; do
+                    str=""
+                    while IFS='' read -r line || [[ -n "$line" ]]; do
                         var2=`echo "$line" | sed -E 's/(.*):(.*):(.*)/\2/'`
                         echo "Removing file ... $var2"
-                        rm $var2
-                    done
-                    retv=`echo $?`
+                        str="${var2} ${str}"
+                    done <<<"$(echo "$map")"
+                    echo "Removing temp files ... $str"
+                    rm -rf $str
                     rm -rf ./mapping 
                     exit 1;;
             [Nn]* ) echo break;;
