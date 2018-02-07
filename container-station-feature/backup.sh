@@ -53,7 +53,7 @@ function set_container_status()
     elif [[ "$stat" =~ "Exited" ]]; then
         state=0
     else
-        echo "Oops~"
+        echo "Oops~ STATE: $stat , CONTAINER: $container .........."
     fi
 }
 
@@ -94,7 +94,7 @@ case $1 in
             str="${var2} ${str}"
         done <<<"$(echo "$map")"
         echo "MERGING ..."
-        tar -jcv -f "$package" -C ./ $str
+        tar -jcv -f "$package" -C ./ mapping $str
 
         # Clean
         while IFS='' read -r line || [[ -n "$line" ]]; do
@@ -103,7 +103,7 @@ case $1 in
             rm $var2
         done <<<"$(echo "$map")"
         echo "Removing file ... mapping"
-        rm mapping
+        rm $file
     ;;
 
     restore )
@@ -121,20 +121,22 @@ case $1 in
             retr=`docker inspect "$var1"`
             retv=`echo $?`
             if [ $retv -eq "0" ]; then
+                set_container_status "$var1"
                 echo "Starting mounting volume ... "
                 var=`docker inspect --format='{{range .Mounts}} {{.Source}} {{.Destination}} ,{{end}}' "$var1"`
                 echo $var | while IFS=" " read -d ',' volume mounted; do
                     if [ "$mounted" = "$var3" ]; then
-                        echo "MOUNT: Stopping the container $var1"
+                        echo "RESTORE: Stopping the container $var1"
                         docker stop $var1                       
                         echo "MOUNT: Mounting the volume $var2 to container $var1, $var3"
                         rm -rf `basename ${volume}`
-                        echo "MOUNT: Replacing $dictionary/$var2 to ${volume}"
+                        echo "RESTORE: Replacing $dictionary/$var2 to ${volume}"
                         tar -jx -f ./"$var2" -C ${volume}/../ 
-                        echo "MOUNT: Starting the container $var1"
-                        res="$res $var1"
+                        echo "RESTORE: Removing $var2 ..."
+                        rm -rf ./"$var2"
                     fi
                 done
+                restore_container_status "$var1"
             elif [ -v $retv && $retv -eq "1" ]; then
                 echo "No such container named as $var1"
             else
@@ -142,6 +144,8 @@ case $1 in
                 echo $retv
             fi
         done
+        echo "Removing file ... mapping"
+        rm -rf ./mapping
     ;;
 
     --h | -help | help )
