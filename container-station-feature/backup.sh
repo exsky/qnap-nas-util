@@ -150,10 +150,17 @@ case $1 in
         rm -rf ./mapping
     ;;
 
-    --h | -help | help )
+    --h | -h | --help | -help | help )
+        echo "----- The help guide of backup script -----"
+        echo ""
         echo "Usage: "
         echo "    ./backup.sh backup <target_packed_name> <container_name>"
         echo "    ./backup.sh restore <package_name>"
+        echo ""
+        echo "Examples: "
+        echo "    ./backup.sh backup example.tbz ubuntu-1"
+        echo "    ./backup.sh restore example.tbz"
+        echo ""
     ;;
 
     * ) break ;;
